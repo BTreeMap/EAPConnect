@@ -1,4 +1,4 @@
-package org.joefang.wearos.eap.theme
+package org.joefang.wearos.eap.presentation.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
