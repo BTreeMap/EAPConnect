@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">EAPConnect</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">From the Square world,\nHello, %1$s!</string>
+    <string name="grant_location">Grant Location Permission</string>
+    <string name="add_network">Add Network</string>
+    <string name="ssid_label">SSID</string>
+    <string name="identity_label">Identity</string>
+    <string name="password_label">Password</string>
+    <string name="domain_label">Domain</string>
 </resources>
