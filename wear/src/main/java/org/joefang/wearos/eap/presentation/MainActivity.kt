@@ -26,6 +26,8 @@ import androidx.wear.compose.material.TimeText
 import org.joefang.wearos.eap.R
 import org.joefang.wearos.eap.ui.WiFiConfigScreen
 import org.joefang.wearos.eap.theme.WiFiSuggestTheme
+import java.security.KeyStore
+import java.security.cert.X509Certificate
 
 class MainActivity : ComponentActivity() {
     private val requestLocationPermission =
@@ -80,28 +82,44 @@ class MainActivity : ComponentActivity() {
         password: String,
         domain: String
     ) {
-        val enterpriseConfig = WifiEnterpriseConfig().apply {
-            setIdentity(identity)
-            setPassword(password)
-            setEapMethod(WifiEnterpriseConfig.Eap.PEAP)
-            setPhase2Method(WifiEnterpriseConfig.Phase2.MSCHAPV2)
-            setDomainSuffixMatch(domain)
-            setCaCertificate(null)
-        }
+        try {
+            // Load the system trusted certificates from AndroidCAStore
+            val keyStore = KeyStore.getInstance("AndroidCAStore")
+            keyStore.load(null)
+            val certList = keyStore.aliases().toList().mapNotNull { alias ->
+                keyStore.getCertificate(alias) as? X509Certificate
+            }
+            val certArray = certList.toTypedArray()
 
-        val suggestion = WifiNetworkSuggestion.Builder()
-            .setSsid(ssid)
-            .setWpa2EnterpriseConfig(enterpriseConfig)
-            .setPriority(1)
-            .build()
+            // Configure WifiEnterpriseConfig with the system trusted certificates
+            val enterpriseConfig = WifiEnterpriseConfig().apply {
+                setIdentity(identity)
+                setPassword(password)
+                eapMethod = WifiEnterpriseConfig.Eap.PEAP
+                phase2Method = WifiEnterpriseConfig.Phase2.MSCHAPV2
+                domainSuffixMatch = domain
+                caCertificates = certArray
+            }
 
-        val status = (context.getSystemService(WIFI_SERVICE) as WifiManager)
-            .addNetworkSuggestions(listOf(suggestion))
+            // Build the WifiNetworkSuggestion
+            val suggestion = WifiNetworkSuggestion.Builder()
+                .setSsid(ssid)
+                .setWpa2EnterpriseConfig(enterpriseConfig)
+                .setPriority(1)
+                .build()
 
-        if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
-            Log.i("EAPConnect", "Suggestion added; approve via notification")
-        } else {
-            Log.e("EAPConnect", "Failed to add suggestion: $status")
+            // Add the network suggestion
+            val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val status = wifiManager.addNetworkSuggestions(listOf(suggestion))
+
+            if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                Log.i("EAPConnect", "Suggestion added; approve via notification")
+            } else {
+                Log.e("EAPConnect", "Failed to add suggestion: $status")
+            }
+        } catch (e: Exception) {
+            Log.e("EAPConnect", "Error configuring network suggestion", e)
+            // Optionally, handle the error in the UI if needed
         }
     }
 }
