@@ -53,8 +53,8 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    TimeText()
-                    Spacer(Modifier.height(8.dp))
+//                    TimeText()
+//                    Spacer(Modifier.height(8.dp))
 
                     if (!hasPermission) {
                         Button(onClick = {
@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
                             Text(text = stringResource(R.string.grant_location))
                         }
                     } else {
+//                        Text(text = "Permission is working")
                         WiFiConfigScreen { ssid, identity, password, domain ->
                             suggestEnterpriseNetwork(context, ssid, identity, password, domain)
                         }
@@ -85,6 +86,7 @@ class MainActivity : ComponentActivity() {
             setEapMethod(WifiEnterpriseConfig.Eap.PEAP)
             setPhase2Method(WifiEnterpriseConfig.Phase2.MSCHAPV2)
             setDomainSuffixMatch(domain)
+            setCaCertificate(null)
         }
 
         val suggestion = WifiNetworkSuggestion.Builder()
